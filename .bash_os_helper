@@ -1,0 +1,199 @@
+#!/bin/bash
+#
+#
+# functions to help generate my bashrc setup
+#
+#
+
+UNKNOWN="Unknown"
+DARWIN="Darwin"
+OSX="OS X"
+	TIGER="Tiger"
+	LEOPARD="Leopard"
+	SNOWLEOPARD="Snow Leopard"
+	LION="Lion"
+	MOUNTAINLION="Mountain Lion"
+NETBSD="NetBSD"
+	V50="v5.0.X"
+FREEBSD="FreeBSD"
+LINUX="Linux"
+DEBIAN="Debian"
+	LENNY="Lenny"
+	SQUEEZE="Squeeze"
+UBUNTU="Ubuntu"
+	KARMICKOALA="Karmic Koala"
+	LUCIDLYNX="Lucid Lynx"
+	MAVERICKMEERKAT="Maverick Meerkat"
+	NATTYNARWHAL="Natty Narwhal"
+	ONEIRICOCELOT="Oneiric Ocelot"
+	PRECISEPANGOLIN="Precise Pangolin"
+	QUANTALQUETZAL="Quantal Quetzal"
+	RARINGRINGTAIL="Raring Ringtail"
+   TRUSTYTAHR="Trusty Tahr"
+   XENIALXERUS="Xenial Xerus"
+   BIONICBEAVER="Bionic Beaver"
+CENTOS="CentOS"
+	V54="v5.4"
+
+KERNEL=$UNKNOWN
+MAJOR=$UNKNOWN
+MINOR=$UNKNOWN
+if [[ -f "/bin/uname" ]]
+then
+	UNAME=/bin/uname
+elif [[ -f "/usr/bin/uname" ]]
+then
+	UNAME=/usr/bin/uname
+fi
+sys=`$UNAME -s`
+ver=`$UNAME -r`
+#echo "Got $sys / $ver"
+case $sys in
+[Dd][Aa][Rr][Ww][Ii][Nn])
+	KERNEL=$DARWIN
+	MAJOR=$OSX
+	case ${ver%%.*} in
+		12) # Mountain Lion
+			MINOR=$MOUNTAINLION
+		;;
+		11) # Lion
+			MINOR=$LION
+		;;
+		10) # Snow Leopard
+			MINOR=$SNOWLEOPARD
+		;;
+		9) # Leopard
+			MINOR=$LEOPARD
+		;;
+		8) # Tiger
+			MINOR=$TIGER
+		;;
+		*)
+			MINOR=$UNKNOWN
+	esac
+;;
+[Nn][Ee][Tt][Bb][Ss][Dd])
+	KERNEL=$NETBSD
+	MAJOR=$NETBSD
+	case ${ver%%.*} in
+		5)
+			MINOR=$V50
+		;;
+	esac
+;;
+[Ll][Ii][Nn][Uu][Xx])
+	KERNEL=$LINUX
+	if [[ -f /etc/issue ]]
+	then
+		REPL='\1\/\2'
+		PATTERN='\([a-zA-Z]\+\).* \([.0-9]\+\).*'
+		# Common /etc/issue lines
+		# CentOS: CentOS release 5.4 (Final)
+		# Debian: Debian GNU/Linux 5.0 \n \l
+		# Ubuntu: Ubuntu 10.04 LTS \n \l
+	  	IDSTR=`cat /etc/issue | grep "$PATTERN" | sed s/"$PATTERN"/"$REPL"/`
+		sys=${IDSTR%%/*}
+		ver=${IDSTR##*/}
+		case $sys in 
+			[Dd][Ee][Bb][Ii][Aa][Nn])
+				MAJOR=$DEBIAN
+				case $ver in
+					5.0)
+						MINOR=$LENNY
+					;;
+					6.0)
+						MINOR=$SQUEEZE
+					;;
+				esac
+			;;
+			[Cc][Ee][Nn][Tt][Oo][Ss])
+				MAJOR=$CENTOS
+				case $ver in
+					5.4)
+						MINOR=$V54
+					;;
+				esac
+			;;
+			[Uu][Bb][Uu][Nn][Tt][Uu])
+				MAJOR=$UBUNTU
+				case $ver in 
+               18.04*)
+                  MINOR=$BIONICBEAVER
+               ;;
+               16.04*)
+                  MINOR=$XENIALXERUS
+               ;;
+               14.04*)
+                  MINOR=$TRUSTYTAHR
+               ;;
+					13.04)
+						MINOR=$RARINGRINGTAIL
+					;;
+					12.10)
+						MINOR=$QUANTALQUETZAL
+					;;
+					12.04*)
+						MINOR=$PRECISEPANGOLIN
+					;;
+					11.10)
+						MINOR=$ONEIRICOCELOT
+					;;
+					11.04)
+						MINOR=$NATTYNARWHAL
+					;;
+					10.10)
+						MINOR=$MAVERICKMEERKAT
+					;;
+					10.04)
+						MINOR=$LUCIDLYNX
+					;;
+					9.10)
+						MINOR=$KARMICKOALA
+					;;
+				esac
+			;;
+			*)
+				MAJOR=$LINUX
+				MINOR=$sys
+				echo "****Unknown Linux System: $sys Version: $ver****"
+			;;
+		esac
+	fi
+;;
+*)
+;;
+esac
+
+system_name()
+{
+	sys_name_override_file="~/.bash_sys_name_override";
+
+	if [ -e $sys_name_override_file ];
+	then
+		/bin/cat $sys_name_override_file
+	else
+		/bin/hostname -s	
+	fi
+}
+
+append_path()
+{
+	if [ $# -eq 1 ];
+	then
+		echo "$1"
+	elif [ $# -eq 2 ];
+	then
+		echo "$1:$2"
+	else
+		return 1
+	fi
+}
+
+echo OS is: $MAJOR -- $MINOR
+sysname=`system_name`
+echo Welcome To: $sysname
+#pth=`append_path $pth /some/path`
+#pth=`append_path $pth /foo/path`
+#echo pth = $pth
+#gth=`append_path     /some/path`
+#echo gth = $gth
