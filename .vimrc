@@ -1,3 +1,7 @@
+" vim tip:
+" to verify which vimrc is being called use
+" :version
+"
 " When started as "evim", evim.vim will already have done these settings.
 if v:progname =~? "evim"
   finish
@@ -33,9 +37,10 @@ map Q gq
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
 if &t_Co > 2 || has("gui_running")
-  colorscheme koehler 
   syntax on
   set hlsearch
+  colorscheme koehler 
+  hi Visual  guifg=#000000 guibg=#FFFFFF gui=none
 endif
 
 " Only do this part when compiled with support for autocommands.
@@ -100,6 +105,3 @@ set wildmenu
 set cpo-=<
 set wcm=<C-Z>
 map <F4> :emenu <C-Z>
-let g:snips_author = 'Nathaniel Madura'
-let g:snips_email = 'shogunjp@gmail.com'
-let g:snips_company = 'The University of Michigan Transporation Research Institute'

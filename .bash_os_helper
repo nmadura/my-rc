@@ -17,6 +17,9 @@ NETBSD="NetBSD"
 	V50="v5.0.X"
 FREEBSD="FreeBSD"
 LINUX="Linux"
+REDHAT="RHEL"
+	SANTIAGO="Santiago"
+	MAIPO="Maipo"
 DEBIAN="Debian"
 	LENNY="Lenny"
 	SQUEEZE="Squeeze"
@@ -29,11 +32,13 @@ UBUNTU="Ubuntu"
 	PRECISEPANGOLIN="Precise Pangolin"
 	QUANTALQUETZAL="Quantal Quetzal"
 	RARINGRINGTAIL="Raring Ringtail"
-   TRUSTYTAHR="Trusty Tahr"
-   XENIALXERUS="Xenial Xerus"
-   BIONICBEAVER="Bionic Beaver"
+	TRUSTYTAHR="Trusty Tahr"
+	XENIALXERUS="Xenial Xerus"
+	BIONICBEAVER="Bionic Beaver"
 CENTOS="CentOS"
 	V54="v5.4"
+CYGWIN="Cygwin"
+	WINDOWS="Windows"
 
 KERNEL=$UNKNOWN
 MAJOR=$UNKNOWN
@@ -81,19 +86,43 @@ case $sys in
 		;;
 	esac
 ;;
+[Cc][Yy][Gg][Ww][Ii][Nn]*)
+	KERNEL=$CYGWIN
+	MAJOR=$WINDOWS
+	case ${sys##*NT-} in
+		6.1)
+			MINOR=7
+		;;
+		*)
+			MINOR=$UNKNOWN
+		;;
+	esac
+;;
 [Ll][Ii][Nn][Uu][Xx])
 	KERNEL=$LINUX
+	# newer redhat has a file in /etc/system-release that has very similar output
+	
+	REPL='\1\/\2'
+	PATTERN='\([a-zA-Z]\+\).* \([.0-9]\+\).*'
 	if [[ -f /etc/issue ]]
 	then
-		REPL='\1\/\2'
-		PATTERN='\([a-zA-Z]\+\).* \([.0-9]\+\).*'
+		LINUXTYPE=/etc/issue
+		IDSTR=`cat $LINUXTYPE | grep "$PATTERN" | sed s/"$PATTERN"/"$REPL"/`
+		sys=${IDSTR%%/*}
+		ver=${IDSTR##*/}
+	fi
+	if [ -n $sys ] && [ -f /etc/system-release ]
+	then
+		LINUXTYPE=/etc/system-release
+		IDSTR=`cat $LINUXTYPE | grep "$PATTERN" | sed s/"$PATTERN"/"$REPL"/`
+		sys=${IDSTR%%/*}
+		ver=${IDSTR##*/}
+	fi
 		# Common /etc/issue lines
 		# CentOS: CentOS release 5.4 (Final)
 		# Debian: Debian GNU/Linux 5.0 \n \l
 		# Ubuntu: Ubuntu 10.04 LTS \n \l
-	  	IDSTR=`cat /etc/issue | grep "$PATTERN" | sed s/"$PATTERN"/"$REPL"/`
-		sys=${IDSTR%%/*}
-		ver=${IDSTR##*/}
+	# Red Hat: Red Hat Enterprise Linux Server release 6.5 (Santiago)
 		case $sys in 
 			[Dd][Ee][Bb][Ii][Aa][Nn])
 				MAJOR=$DEBIAN
@@ -114,18 +143,29 @@ case $sys in
 					;;
 				esac
 			;;
+		[Rr][Ee][Dd])
+			MAJOR=$REDHAT
+			case $ver in
+				6.5)
+					MINOR=$SANTIAGO
+				;;
+				7.4)
+					MINOR=$MAIPO
+				;;
+			esac		
+		;;
 			[Uu][Bb][Uu][Nn][Tt][Uu])
 				MAJOR=$UBUNTU
 				case $ver in 
-               18.04*)
-                  MINOR=$BIONICBEAVER
-               ;;
-               16.04*)
-                  MINOR=$XENIALXERUS
-               ;;
-               14.04*)
-                  MINOR=$TRUSTYTAHR
-               ;;
+					18.04*)
+						MINOR=$BIONICBEAVER
+					;;
+					16.04*)
+						MINOR=$XENIALXERUS
+					;;
+					14.04*)
+						MINOR=$TRUSTYTAHR
+					;;
 					13.04)
 						MINOR=$RARINGRINGTAIL
 					;;
@@ -158,7 +198,6 @@ case $sys in
 				echo "****Unknown Linux System: $sys Version: $ver****"
 			;;
 		esac
-	fi
 ;;
 *)
 ;;

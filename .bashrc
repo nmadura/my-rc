@@ -10,6 +10,13 @@
 [ -z "$PS1" ] && return
 
 echo "Executing bashrc"
+BASHLOCATION=`which bash`
+
+if [ "$SHELL" != "$BASHLOCATION" ] 
+then
+	# mostly for work, where I can't change my default shell from ksh
+	export SHELL="$BASHLOCATION"
+fi
 
 # if the helper script exists execute it
 if [ -e ~/.nhmrc/.bash_os_helper ];
@@ -25,7 +32,7 @@ shopt -s checkwinsize
 umask 022
 
 # tweak how bash history is used
-export HSTSIZE=150
+export HISTSIZE=1500
 export HISTIGNORE=\&
 export HISTCONTROL=ignoreboth
 
@@ -35,6 +42,9 @@ case "$TERM" in
 	xterm-color | xterm) 
 		color_prompt=yes
 		[ -n "$TERM_PROGRAM" ] && [ "$TERM_PROGRAM" != Apple_Terminal ] && export TERM=xterm-256color
+		# Redhat 6.5 recognizes xterm-color and xterm as 8 bit only terminals
+		# this is confirmed with infocmp | grep color
+		[ -z "$TERM_PROGRAM" ] && [ "$MAJOR" == RHEL ] && export TERM=xterm-256color
 		;;
 	screen) 
 		color_prompt=yes
@@ -56,7 +66,8 @@ if [ -n $TERM_PROGRAM ]; then
 			;;
 	esac
 else
-	color256=false
+	# Assume all terminals support 256 color
+	color256=true
 fi
 
 # if the terminal supports color setup a fancy terminal
@@ -69,7 +80,7 @@ if [ "$color_prompt" = yes ]; then
 	alias fgrep='fgrep --color=auto'
 	alias egrep='egrep --color=auto'
 	case "$MAJOR" in 
-		"$DEBIAN" | "$UBUNTU")
+		"$DEBIAN" | "$UBUNTU" | "$REDHAT")
 			alias ls='ls --color=auto'
 			alias dir='dir --color=auto'
 			alias vdir='vdir --color=auto'
@@ -176,11 +187,12 @@ function localconfigure {
 
 # aliases
 alias untar="/usr/bin/tar -zxvvf "
+alias grepmes="cat mes* | grep -C 10 Error"
 
 CPPFLAGS=""
 LDFLAGS=""
-MANPATH=/usr/share/man
-PATH=/bin:/usr/bin:/sbin:/usr/sbin
+MANPATH=`append_path "$MANPATH" "/usr/share/man"`
+PATH=`append_path "$PATH" "/bin:/usr/bin:/sbin:/usr/sbin"`
 XPATH=""
 PYTHONPATH=""
 PKG_CONFIG_PATH=/usr/lib/pkgconfig
